@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>美观计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .calculator {
+            background-color: #f4f4f4;
+            border: 1px solid #d1d1d1;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 320px;
+            margin: 0 auto;
+        }
+
+        .display {
+            background-color: #ffffff;
+            border: 1px solid #d1d1d1;
+            border-radius: 8px;
+            margin: 10px;
+            padding: 10px;
+        }
+
+        .input {
+            width: 100%;
+            font-size: 24px;
+            border: none;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .result {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        .buttons {
+            margin: 10px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+        }
+
+        .number-button, .operator-button, .small-button, .equal-button, .clear-button {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .number-button {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .operator-button {
+            background-color: #2196F3;
+            color: #fff;
+        }
+
+        .small-button {
+            width: 100px;
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .equal-button {
+            width: 100px;
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .clear-button {
+            width: 100px;
+            background-color: #f44336;
+            color: #fff;
+        }
+
+        button:hover, .equal-button:hover, .clear-button:hover {
+            background-color: #45a049;
+        }
+
+        .history {
+            background-color: #ffffff;
+            border: 1px solid #d1d1d1;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 320px;
+            margin: 20px auto;
+        }
+
+        #historyList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .history h2 {
+            font-size: 20px;
+            margin: 10px 0;
+        }
+
+        li {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <input type="text" class="input" id="input" placeholder="输入表达式">
+            <div class="result" id="result">结果：</div>
+        </div>
+        <div class="buttons">
+            <div class="row">
+                <button class="number-button" onclick="appendToInput('7')">7</button>
+                <button class="number-button" onclick="appendToInput('8')">8</button>
+                <button class="number-button" onclick="appendToInput('9')">9</button>
+                <button class="operator-button" onclick="appendToInput('+')">+</button>
+            </div>
+            <div class="row">
+                <button class="number-button" onclick="appendToInput('4')">4</button>
+                <button class="number-button" onclick="appendToInput('5')">5</button>
+                <button class="number-button" onclick="appendToInput('6')">6</button>
+                <button class="operator-button" onclick="appendToInput('-')">-</button>
+            </div>
+            <div class="row">
+                <button class="number-button" onclick="appendToInput('1')">1</button>
+                <button class="number-button" onclick="appendToInput('2')">2</button>
+                <button class="number-button" onclick="appendToInput('3')">3</button>
+                <button class="operator-button" onclick="appendToInput('*')">*</button>
+            </div>
+            <div class="row">
+                <button class="small-button" onclick="appendToInput('Math.sin(')">sin</button>
+                <button class="small-button" onclick="appendToInput('Math.cos(')">cos</button>
+                <button class="small-button" onclick="appendToInput('Math.tan(')">tan</button>
+                <button class="operator-button" onclick="appendToInput('/')">/</button>
+            </div>
+            <div class="row">
+                <button class="number-button" onclick="appendToInput('0')">0</button>
+                <button class="number-button" onclick="appendToInput('.')">.</button>
+                <button class="equal-button" onclick="calculate()">=</button>
+                <button class="clear-button" onclick="clearInput()">C</button>
+                <button class="clear-button" onclick="backspace()">←</button>
+            </div>
+        </div>
+    </div>
+    <div class="history">
+        <h2>历史记录</h2>
+        <ul id="historyList"></ul>
+    </div>
+    <script>
+        const historyList = document.getElementById('historyList');
+
+        function appendToInput(value) {
+            document.querySelector('.input').value += value;
+        }
+
+        function clearInput() {
+            document.getElementById('input').value = '';
+            document.getElementById('result').textContent = '结果：';
+        }
+
+        function backspace() {
+            const input = document.querySelector('.input');
+            input.value = input.value.slice(0, -1);
+        }
+
+        function calculate() {
+            const input = document.querySelector('.input').value;
+            // 向后端发送计算请求
+            fetch('/calculate', {
+                method: 'POST',
+                body: JSON.stringify({ expression: input }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').textContent = `结果：${data.result}`;
+                addToHistory(input, data.result);
+            })
+            .catch(error => {
+                document.getElementById('result').textContent = '结果：错误';
+            });
+        }
+
+        function addToHistory(expression, result) {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${expression} = ${result}`;
+            historyList.appendChild(listItem);
+        }
+
+        clearInput();
+    </script>
+</body>
+</html>
